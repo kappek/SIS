@@ -30,8 +30,12 @@ public:
     }
     student(){}
     void writeToFile(ofstream& of);
-    void readFromFile(string USN,ifstream& io);
-
+    void readFromFile(ifstream& io);
+    void displayAll(string USN, ifstream& of);
+    void display();
+    friend void attend(string sub);
+    friend void rewrite(ofstream& of);
+    friend void mark(string sub);
 
 };
 void student::writeToFile(ofstream& of)
@@ -46,51 +50,67 @@ void student::writeToFile(ofstream& of)
 
     of.close();
 }
-void student::readFromFile(string USN,ifstream& io)
-    {
-        while(io)
-        {
-            io>>name;
-            io>>usn;
-            if(usn==USN)
-            {
-                string s1; int n;
-                cout<<"\nname: "<<name;
-                cout<<"\nusn: "<<usn<<"\n";
+void student::readFromFile(ifstream& io)
+{
 
-                cout<<"marks\n";
-                for(int i=0;i<3;i++)
-                {
-                   io>>s1;
-                    io>>n;
 
-                    cout<<s1<<":\t"<<n;
-                    cout<<"\n";
-                }
-
-                cout<<"attendance\n";
-                for(int i=0;i<3;i++)
+        io>>name;
+        io>>usn;
+        string s1; int n;
+        for(int i=0;i<3;i++)
                 {
                     io>>s1;
                     io>>n;
+                    attendance.insert(pair<string,int>(s1,n));
 
-                    cout<<s1<<":\t"<<n;
-                    cout<<"\n";
                 }
+        for(int i=0;i<3;i++)
+                {
+                    io>>s1;
+                    io>>n;
+                    marks.insert(pair<string,int>(s1,n));
+
+                }
+
+
+}
+void student::display()
+{
+    cout<<"\nname: "<<name;
+                cout<<"\nusn: "<<usn<<"\n";
+
+                cout<<"attendance\n";
+                mit=attendance.begin();
+                for(;mit!=attendance.end();++mit)
+                {
+                     cout<<mit->first<<":\t"<<mit->second;
+                     cout<<"\n";
+                }
+
+                cout<<"marks\n";
+                 mit=marks.begin();
+                for(;mit!=marks.end();++mit)
+                {
+                     cout<<mit->first<<":\t"<<mit->second;
+                     cout<<"\n";
+                }
+}
+void student::displayAll(string USN,ifstream& io)
+    {
+
+        while(!(io.eof()))
+        {
+            readFromFile(io);
+            if(io.eof())
+                break;
+            //display();
+            if(usn==USN)
+            {
+                display();
                 io.close();
                 return;
             }
-            else
-            {
-                string str;
-                int i=0,x;
-                while(i<6)
-                {
-                    io>>str;
-                    io>>x;
-                    ++i;
-                }
-            }
+
         }
 
 
@@ -101,11 +121,79 @@ void student::readFromFile(string USN,ifstream& io)
 int student::countAtt;
 vector<student> s;
 vector<student>::reverse_iterator rit;
+vector<student> atte;
+vector<student>:: iterator ait;
+void rewrite()
+{cout<<"\nREWRITING\n";
 
-//void student::attend(ifstream& io,ofstream& of,string sub)
-//{
-//
-//}
+    ait=atte.begin();
+    for(;ait!=atte.end();++ait)
+    {
+        ofstream of("student.dat",ios::binary|ios::app);
+        ait->writeToFile(of);
+
+    }
+
+}
+void attend(string sub)
+{
+    ifstream io("student.dat",ios::binary);
+    char att;
+
+    while(!(io.eof()))
+    {
+        student ob;
+        char att;
+        ob.readFromFile(io);
+        if(io.eof())
+            break;
+        cout<<"\na:absent,p:present\n";
+
+                cout<<"\n"<<ob.usn<<":\t";
+                cin>>att;
+                if(att=='p')
+                ++((ob.attendance.find(sub))->second);
+
+        atte.push_back(ob);
+
+
+    }
+    io.close();
+    //rewrite
+    ofstream of("student.dat",ios::binary);
+    of.close();
+    rewrite();
+
+
+}
+void mark(string sub)
+{
+    int m;
+    ifstream io("student.dat",ios::binary);
+
+    while(!(io.eof()))
+    {
+        student ob;
+        ob.readFromFile(io);
+        if(io.eof())
+            break;
+        cout<<"\nenter marks\n";
+
+                cout<<"\n"<<ob.usn<<":\t";
+                cin>>m;
+                ob.marks[sub]=m;
+        atte.push_back(ob);
+
+
+    }
+    io.close();
+    //rewrite
+    ofstream of("student.dat",ios::binary);
+    of.close();
+    rewrite();
+
+
+}
 
 int main()
 {
@@ -125,38 +213,38 @@ int main()
                 cin>>USN;
                 ifstream io("student.dat",ios::binary);
                 student ob;
-                ob.readFromFile(USN,io);
+                ob.displayAll(USN,io);
 
                 break;}
-//        case 2: cout<<"\n1.EC\n2.MATHS\n3.OOPS\n";
-//                cin>>ch2;
-//                cout<<"\n1.Attendance\n2.Marks\n";
-//                cin>>ch3;
-//                switch(ch2)
-//                {
-//                    case 1: sub="EC";
-//                            switch(ch3)
-//                            {
-//                                case 1: attend(sub); break;
-//                                //case 2: mark(sub); break;
-//                            }
-//                            break;
-//                     case 2: sub="MATHS";
-//                            switch(ch3)
-//                            {
-//                                case 1: attend(sub); break;
-//                                //case 2: mark(sub); break;
-//                            }
-//                            break;
-//                     case 3: sub="OOPS";
-//                            switch(ch3)
-//                            {
-//                                case 1: attend(sub); break;
-//                               // case 2: mark(sub); break;
-//                            }
-//                            break;
-//                }
-//                break;
+        case 2: cout<<"\n1.EC\n2.MATHS\n3.OOPS\n";
+                cin>>ch2;
+                cout<<"\n1.Attendance\n2.Marks\n";
+                cin>>ch3;
+                switch(ch2)
+                {
+                    case 1: sub="EC";
+                            switch(ch3)
+                            {
+                                case 1:attend(sub); break;
+                                case 2: mark(sub); break;
+                            }
+                            break;
+                     case 2: sub="MATHS";
+                            switch(ch3)
+                            {
+                                case 1: attend(sub); break;
+                                case 2: mark(sub); break;
+                            }
+                            break;
+                     case 3: sub="OOPS";
+                            switch(ch3)
+                            {
+                                case 1: attend(sub); break;
+                                case 2: mark(sub); break;
+                            }
+                            break;
+                }
+                break;
             case 3: cout<<"1.enter\n2.delete\n";
                     cin>>ch4;
                     switch(ch4)
